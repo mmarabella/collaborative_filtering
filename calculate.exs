@@ -28,15 +28,9 @@ defmodule Util do
 	end
 end
 
-# idk = File.stream!("ratings_small.csv") 
-# 	|> CSV.decode! 
-# 	|> Enum.take(2)
-# 	|> Enum.map(fn x -> Enum.at(x, 1) end)
-
-map1 = %{}
-map1 = Similarity.add_viewer(map1, "key", "I am viewer1")
-map1 = Similarity.add_viewer(map1, "key", "I am viewer2")
-map1 = Similarity.add_viewer(map1, "key2", "I am viewer2")
-
-
-IO.puts Util.print_map(map1, &Util.print_set/1)
+File.stream!("ratings_small.csv") 
+	|> CSV.decode! 
+	|> Enum.take(254) # => [[customer, movie, ...], [customer, movies, ...] ]
+	|> List.foldl(%{}, fn x, acc -> Similarity.add_viewer(acc, Enum.at(x, 1), Enum.at(x, 0)) end)
+	|> Util.print_map(&Util.print_set/1)
+	|> IO.puts

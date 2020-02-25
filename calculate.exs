@@ -16,6 +16,7 @@ defmodule Similarity do
 			MapSet.intersection(set_a, set_b)
 			|> MapSet.size()
 		intersection_size / ( :math.sqrt(MapSet.size(set_a)) * :math.sqrt(MapSet.size(set_b)) )
+			|> Float.round(2)
 	end
 end
 
@@ -35,19 +36,17 @@ defmodule Util do
 	end
 end
 
-map = File.stream!("ratings_test.csv") 
+map = File.stream!("popular_movie_ratings.csv") 
 	|> CSV.decode! 
-	|> Enum.take(23) # => [[customer, movie, ...], [customer, movies, ...] ]
+	|> Enum.take(13295) # => [[customer, movie, ...], [customer, movies, ...] ]
 	|> List.foldl(%{}, fn x, acc -> Similarity.add_viewer(acc, Enum.at(x, 1), Enum.at(x, 0)) end)
 
-map |> Util.print_map(&Util.print_set/1)
-	|> IO.puts
 
+IO.puts "Writing to csv"
 
-IO.puts "\n--------------------"
-a = MapSet.new([1, 2, 3])
-b = MapSet.new([2, 3, 4, 5])
-Similarity.cosine(a, b) |> IO.puts
+{:ok, file} = File.open("test_output.csv", [:write])
+x = for {k1, v1} <- map, do:
+	for {k2, v2} <- map, do: 
+		IO.binwrite(file, to_string(k1) <> "," <> to_string(k2) <> "," <> to_string(Similarity.cosine(v1, v2)) <> "\n")
 
-
-IO.puts "\n--------------------"
+File.close(file)
